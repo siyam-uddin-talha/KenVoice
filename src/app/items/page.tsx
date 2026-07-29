@@ -143,24 +143,25 @@ export default function ItemsPage() {
           </button>
         </div>
       ) : (
-        <div className="bg-[#ededdf] border border-[#c4cbc5] rounded-lg shadow-none overflow-hidden max-w-4xl">
-          <table className="w-full text-left text-sm">
+        <div className="bg-[#ededdf] border border-[#c4cbc5] rounded-lg shadow-none overflow-x-auto">
+          <table className="w-full text-left text-sm min-w-[500px] table-fixed">
+            <colgroup><col className="w-auto" /><col className="w-[160px]" /><col className="w-[80px]" /></colgroup>
             <thead>
               <tr className="border-b border-[#c4cbc5] bg-[#f5f4ef]/50">
-                <th className="px-6 py-4 font-serif font-semibold text-[#161917]">Description</th>
-                <th className="px-6 py-4 font-serif font-semibold text-[#161917] text-right">Unit Price</th>
-                <th className="px-6 py-4 font-serif font-semibold text-[#161917] w-16"></th>
+                <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917]">Description</th>
+                <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917] text-right">Unit Price</th>
+                <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917] text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#c4cbc5]">
               {items.map((item) => (
-                <tr key={item.id} className="hover:bg-[#f5f4ef]/30 transition-colors">
-                  <td className="px-6 py-4 text-[#161917]">{item.name}</td>
-                  <td className="px-6 py-4 text-right font-mono text-[#161917] font-semibold">${item.unitPrice.toFixed(2)}</td>
-                  <td className="px-6 py-4 text-right">
+                <tr key={item.id} className="hover:bg-[#f5f4ef]/30 transition-colors align-middle">
+                  <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-[#161917] font-medium truncate">{item.name}</td>
+                  <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-right font-mono text-[#161917] font-semibold">${item.unitPrice.toFixed(2)}</td>
+                  <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-center">
                     <button 
                       onClick={() => handleDelete(item.id, item.name)}
-                      className="text-[#626a64] hover:text-red-700 p-1 transition-colors cursor-pointer"
+                      className="text-[#626a64] hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                       title="Delete Item"
                     >
                       <Trash2 className="h-4 w-4" />

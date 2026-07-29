@@ -27,15 +27,12 @@ export function generateInvoicePdfBase64(
     }
   };
 
-  // Page constants – standard 1-inch (72pt) margins
-  const ML = 72;  // margin left
-  const MR = 523; // margin right (595 - 72)
-  const MT = 770; // margin top
-  const PW = MR - ML; // printable width
+  // Page constants – standard margins
+  const ML = 54;  // margin left
+  const MR = 541; // margin right (595 - 54)
+  const MT = 780; // margin top
 
   const lines: string[] = [];
-
-  // No background fill – clean white page
 
   // ── Invoice Header ──
   lines.push('BT');
@@ -48,7 +45,7 @@ export function generateInvoicePdfBase64(
   let compY = MT + 4;
   lines.push('BT');
   lines.push('0.09 0.1 0.09 rg');
-  lines.push('/F1 11 Tf ' + MR + ' ' + compY + ' Td');
+  lines.push('/F1 12 Tf ' + MR + ' ' + compY + ' Td');
   lines.push('(' + escapePdfText(profile?.name || 'Your Company Name') + ') Tj');
   lines.push('ET');
 
@@ -96,11 +93,14 @@ export function generateInvoicePdfBase64(
   if (clientAddress) {
     const addrParts = String(clientAddress).split('\n');
     for (const al of addrParts) {
-      lines.push('BT');
-      lines.push('0.20 0.20 0.20 rg');
-      lines.push('/F2 9 Tf ' + ML + ' ' + billY + ' Td (' + escapePdfText(al) + ') Tj');
-      lines.push('ET');
-      billY -= 13;
+      const subAddr = wrapText(al, 45);
+      for (const sa of subAddr) {
+        lines.push('BT');
+        lines.push('0.20 0.20 0.20 rg');
+        lines.push('/F2 9 Tf ' + ML + ' ' + billY + ' Td (' + escapePdfText(sa) + ') Tj');
+        lines.push('ET');
+        billY -= 13;
+      }
     }
   }
   if (clientEmail) {
@@ -153,13 +153,13 @@ export function generateInvoicePdfBase64(
   lines.push('/F1 9 Tf ' + ML + ' ' + thY + ' Td (Description) Tj');
   lines.push('ET');
   lines.push('BT');
-  lines.push('/F1 9 Tf 340 ' + thY + ' Td (Qty) Tj');
+  lines.push('/F1 9 Tf 350 ' + thY + ' Td (Qty) Tj');
   lines.push('ET');
   lines.push('BT');
-  lines.push('/F1 9 Tf 400 ' + thY + ' Td (Unit Price) Tj');
+  lines.push('/F1 9 Tf 410 ' + thY + ' Td (Unit Price) Tj');
   lines.push('ET');
   lines.push('BT');
-  lines.push('/F1 9 Tf 480 ' + thY + ' Td (Amount) Tj');
+  lines.push('/F1 9 Tf 490 ' + thY + ' Td (Amount) Tj');
   lines.push('ET');
 
   // Header bottom line
@@ -173,25 +173,37 @@ export function generateInvoicePdfBase64(
     const price = item.unitPrice || 0;
     const amount = qty * price;
 
+    const descLines = wrapText(item.description || 'Item', 42);
+
+    // Print first line with Qty, Unit Price, Amount
     lines.push('BT');
     lines.push('0.12 0.12 0.12 rg');
-    lines.push('/F2 10 Tf ' + ML + ' ' + y + ' Td (' + escapePdfText(item.description || 'Item') + ') Tj');
+    lines.push('/F2 10 Tf ' + ML + ' ' + y + ' Td (' + escapePdfText(descLines[0] || '') + ') Tj');
     lines.push('ET');
 
     lines.push('BT');
     lines.push('0.33 0.33 0.33 rg');
-    lines.push('/F2 10 Tf 345 ' + y + ' Td (' + qty + ') Tj');
+    lines.push('/F2 10 Tf 355 ' + y + ' Td (' + qty + ') Tj');
     lines.push('ET');
 
     lines.push('BT');
     lines.push('0.33 0.33 0.33 rg');
-    lines.push('/F2 10 Tf 400 ' + y + ' Td (' + escapePdfText(currencySymbol + price.toFixed(2)) + ') Tj');
+    lines.push('/F2 10 Tf 410 ' + y + ' Td (' + escapePdfText(currencySymbol + price.toFixed(2)) + ') Tj');
     lines.push('ET');
 
     lines.push('BT');
     lines.push('0.09 0.1 0.09 rg');
-    lines.push('/F1 10 Tf 480 ' + y + ' Td (' + escapePdfText(currencySymbol + amount.toFixed(2)) + ') Tj');
+    lines.push('/F1 10 Tf 490 ' + y + ' Td (' + escapePdfText(currencySymbol + amount.toFixed(2)) + ') Tj');
     lines.push('ET');
+
+    // Print remaining description lines wrapped below
+    for (let d = 1; d < descLines.length; d++) {
+      y -= 13;
+      lines.push('BT');
+      lines.push('0.33 0.33 0.33 rg');
+      lines.push('/F2 9 Tf ' + ML + ' ' + y + ' Td (' + escapePdfText(descLines[d]) + ') Tj');
+      lines.push('ET');
+    }
 
     y -= 6;
     lines.push('0.88 0.88 0.88 RG');
@@ -225,7 +237,47 @@ export function generateInvoicePdfBase64(
     }
   }
 
-  // Signature – left, below notes
+  // Payment Details / Bank Instructions – left
+  const bankDetails = invoice.bankDetails || profile?.bankDetails;
+  if (bankDetails) {
+    notesY -= 10;
+    lines.push('BT');
+    lines.push('0.40 0.40 0.40 rg');
+    lines.push('/F1 8 Tf ' + ML + ' ' + notesY + ' Td (PAYMENT INSTRUCTIONS) Tj');
+    lines.push('ET');
+    notesY -= 14;
+
+    const bankLines = wrapText(bankDetails, 50);
+    for (const bl of bankLines) {
+      lines.push('BT');
+      lines.push('0.33 0.33 0.33 rg');
+      lines.push('/F2 9 Tf ' + ML + ' ' + notesY + ' Td (' + escapePdfText(bl) + ') Tj');
+      lines.push('ET');
+      notesY -= 13;
+    }
+  }
+
+  // Terms – left
+  const terms = invoice.terms || profile?.terms;
+  if (terms) {
+    notesY -= 10;
+    lines.push('BT');
+    lines.push('0.40 0.40 0.40 rg');
+    lines.push('/F1 8 Tf ' + ML + ' ' + notesY + ' Td (TERMS & CONDITIONS) Tj');
+    lines.push('ET');
+    notesY -= 14;
+
+    const termLines = wrapText(terms, 50);
+    for (const tl of termLines) {
+      lines.push('BT');
+      lines.push('0.33 0.33 0.33 rg');
+      lines.push('/F2 9 Tf ' + ML + ' ' + notesY + ' Td (' + escapePdfText(tl) + ') Tj');
+      lines.push('ET');
+      notesY -= 13;
+    }
+  }
+
+  // Signature – left
   if (invoice.signatureText || (invoice.signatureType && invoice.signatureType !== 'none')) {
     notesY -= 10;
     lines.push('BT');
@@ -255,8 +307,8 @@ export function generateInvoicePdfBase64(
   }
 
   // Totals – right
-  const totX = 380;
-  const totValX = 480;
+  const totX = 390;
+  const totValX = 490;
   let totY = y - 24;
 
   lines.push('BT');
@@ -359,17 +411,23 @@ function escapePdfText(text: string): string {
 }
 
 function wrapText(text: string, maxCharsPerLine: number): string[] {
-  const words = text.split(/\s+/);
+  if (!text) return [];
+  const lines = String(text).split('\n');
   const result: string[] = [];
-  let current = '';
-  for (const word of words) {
-    if (current.length + word.length + 1 > maxCharsPerLine) {
-      result.push(current);
-      current = word;
-    } else {
-      current = current ? current + ' ' + word : word;
+
+  for (const line of lines) {
+    const words = line.split(/\s+/);
+    let current = '';
+    for (const word of words) {
+      if (!word) continue;
+      if (current.length + word.length + 1 > maxCharsPerLine) {
+        if (current) result.push(current);
+        current = word;
+      } else {
+        current = current ? current + ' ' + word : word;
+      }
     }
+    if (current) result.push(current);
   }
-  if (current) result.push(current);
   return result;
 }

@@ -14,7 +14,7 @@ import { DatePicker } from "@/components/ui/DatePicker";
 import { Select } from "@/components/ui/Select";
 import { SignaturePad } from "@/components/ui/SignaturePad";
 import { useToast } from "@/hooks/useToast";
-import { getCurrencySymbol } from "@/lib/currency";
+import { getCurrencySymbol, CURRENCY_OPTIONS } from "@/lib/currency";
 import { clientSchema, type ClientFormData } from "@/lib/validations";
 
 export default function NewInvoicePage() {
@@ -732,15 +732,7 @@ export default function NewInvoicePage() {
                 <Select
                   value={currency}
                   onChange={setCurrency}
-                  options={[
-                    { value: "USD", label: "USD ($)" },
-                    { value: "EUR", label: "EUR (€)" },
-                    { value: "GBP", label: "GBP (£)" },
-                    { value: "JPY", label: "JPY (¥)" },
-                    { value: "CAD", label: "CAD ($)" },
-                    { value: "AUD", label: "AUD ($)" },
-                    { value: "INR", label: "INR (₹)" },
-                  ]}
+                  options={CURRENCY_OPTIONS}
                 />
               </div>
             </div>

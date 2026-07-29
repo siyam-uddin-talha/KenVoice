@@ -113,16 +113,8 @@ export default function InvoicesPage() {
         </div>
       ) : (
         <div className="bg-[#ededdf] border border-[#c4cbc5] rounded-lg shadow-none overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[860px] table-fixed">
-            <colgroup>
-              <col className="w-[140px]" /> {/* Invoice */}
-              <col className="w-[170px]" /> {/* Client Details — flex grows */}
-              <col className="w-[150px]" /> {/* Created Date */}
-              <col className="w-[160px]" /> {/* Date */}
-              <col className="w-[90px]" /> {/* Status */}
-              <col className="w-[100px]" /> {/* Amount */}
-              <col className="w-[60px]" /> {/* Actions */}
-            </colgroup>
+          <table className="w-full text-left text-sm min-w-[880px] table-fixed">
+            <colgroup><col className="w-[140px]" /><col className="w-[170px]" /><col className="w-[150px]" /><col className="w-[165px]" /><col className="w-[90px]" /><col className="w-[105px]" /><col className="w-[85px]" /></colgroup>
             <thead>
               <tr className="border-b border-[#c4cbc5] bg-[#f5f4ef]/50">
                 <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917]">
@@ -143,7 +135,7 @@ export default function InvoicesPage() {
                 <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917] text-right">
                   Amount
                 </th>
-                <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917] text-center">
+                <th className="px-2.5 sm:px-3 py-3.5 sm:py-4 font-serif font-semibold text-[#161917] text-center">
                   Actions
                 </th>
               </tr>
@@ -230,7 +222,7 @@ export default function InvoicesPage() {
                       {symbol}
                       {total.toFixed(2)}
                     </td>
-                    <td className="px-4 sm:px-6 py-3.5 sm:py-4 text-center align-middle">
+                    <td className="px-2.5 sm:px-3 py-3.5 sm:py-4 text-center align-middle">
                       <button
                         onClick={(e) => handleDeleteInvoice(inv.id, e)}
                         className="text-[#626a64] hover:text-red-700 p-1.5 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"

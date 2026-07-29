@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/useToast";
 import { SignaturePad } from "@/components/ui/SignaturePad";
 import { getCurrencySymbol } from "@/lib/currency";
+import { generateInvoicePdfBase64 } from "@/lib/pdfGenerator";
 
 export default function InvoiceDetailPage() {
   const params = useParams();
@@ -117,7 +118,8 @@ export default function InvoiceDetailPage() {
       if (!(window as any).html2pdf) {
         await new Promise((resolve, reject) => {
           const script = document.createElement("script");
-          script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
+          script.src =
+            "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
           script.onload = resolve;
           script.onerror = reject;
           document.head.appendChild(script);
@@ -126,14 +128,66 @@ export default function InvoiceDetailPage() {
 
       const html2pdf = (window as any).html2pdf;
       const opt = {
-        margin: [10, 10, 10, 10],
+        margin: [8, 8, 8, 8],
         filename: `Invoice-${invoice?.id}.pdf`,
         image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
+        html2canvas: {
+          scale: 2,
+          useCORS: true,
+          logging: false,
+          backgroundColor: "#ffffff",
+          onclone: (clonedDoc: Document) => {
+            // Clean style tags of modern CSS color functions (lab, oklch) that crash html2canvas
+            const styleTags = clonedDoc.querySelectorAll("style");
+            styleTags.forEach((styleTag) => {
+              if (styleTag.innerHTML) {
+                styleTag.innerHTML = styleTag.innerHTML
+                  .replace(/lab\([^)]+\)/gi, "#161917")
+                  .replace(/oklch\([^)]+\)/gi, "#2b4c33")
+                  .replace(/color\(display-p3[^)]+\)/gi, "#161917");
+              }
+            });
+
+            // Convert computed styles on elements to plain hex/rgb
+            const allElements = clonedDoc.querySelectorAll("*");
+            allElements.forEach((el) => {
+              const htmlEl = el as HTMLElement;
+              if (!htmlEl.style) return;
+              try {
+                const style = window.getComputedStyle(htmlEl);
+                if (
+                  style.color &&
+                  (style.color.includes("lab") || style.color.includes("oklch"))
+                ) {
+                  htmlEl.style.color = "#161917";
+                }
+                if (
+                  style.backgroundColor &&
+                  (style.backgroundColor.includes("lab") ||
+                    style.backgroundColor.includes("oklch"))
+                ) {
+                  htmlEl.style.backgroundColor = "#ffffff";
+                }
+                if (
+                  style.borderColor &&
+                  (style.borderColor.includes("lab") ||
+                    style.borderColor.includes("oklch"))
+                ) {
+                  htmlEl.style.borderColor = "#c4cbc5";
+                }
+              } catch (e) {
+                // Ignore style read errors
+              }
+            });
+          },
+        },
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 
-      const pdfArrayBuffer = await html2pdf().set(opt).from(element).outputPdf("arraybuffer");
+      const pdfArrayBuffer = await html2pdf()
+        .set(opt)
+        .from(element)
+        .outputPdf("arraybuffer");
       const bytes = new Uint8Array(pdfArrayBuffer);
       let binary = "";
       for (let i = 0; i < bytes.byteLength; i++) {
@@ -146,36 +200,53 @@ export default function InvoiceDetailPage() {
     }
   };
 
-  const handleDownloadPdf = async () => {
-    try {
-      const element = document.getElementById("printable-invoice-card");
-      if (!element) return;
+  const downloadPdfBase64 = (base64Data: string, fileName: string) => {
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    const blob = new Blob([byteArray], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
 
-      if (!(window as any).html2pdf) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement("script");
-          script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";
-          script.onload = resolve;
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
+  const handleDownloadPdf = async () => {
+    if (!invoice) return;
+    try {
+      const fileName = `Invoice-${invoice.id || "draft"}.pdf`;
+
+      // 1. Try DOM rendering first (matches Print PDF exactly)
+      let pdfBase64 = await generatePdfFromDom();
+
+      // 2. Fallback to native PDF generator if DOM script failed or was blocked
+      if (!pdfBase64) {
+        pdfBase64 = generateInvoicePdfBase64(
+          invoice,
+          clientDisplayName,
+          clientEmail,
+          profile,
+        );
       }
 
-      const html2pdf = (window as any).html2pdf;
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename: `Invoice-${invoice?.id}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
-      };
-
-      await html2pdf().set(opt).from(element).save();
-      showToast("Invoice PDF downloaded!", "success");
-      if (invoice && invoice.status === "draft") {
-        await db.invoices.update(id, { status: "sent" });
+      if (pdfBase64) {
+        downloadPdfBase64(pdfBase64, fileName);
+        showToast("Invoice PDF downloaded!", "success");
+        if (invoice.status === "draft") {
+          await db.invoices.update(id, { status: "sent" });
+        }
+      } else {
+        throw new Error("PDF generation failed");
       }
     } catch (e) {
+      console.error("Download PDF error:", e);
       showToast("Failed to download PDF", "error");
     }
   };
@@ -189,7 +260,18 @@ export default function InvoiceDetailPage() {
 
     setIsSending(true);
     try {
-      const domPdfBase64 = await generatePdfFromDom();
+      // 1. Try DOM rendering first (matches Print PDF exactly)
+      let pdfBase64 = await generatePdfFromDom();
+
+      // 2. Fallback to native PDF generator
+      if (!pdfBase64) {
+        pdfBase64 = generateInvoicePdfBase64(
+          invoice,
+          clientDisplayName,
+          clientEmail,
+          profile,
+        );
+      }
 
       const res = await fetch("/api/invoices/send", {
         method: "POST",
@@ -199,7 +281,7 @@ export default function InvoiceDetailPage() {
           clientName: clientDisplayName,
           clientEmail,
           profile,
-          pdfBase64: domPdfBase64,
+          pdfBase64,
         }),
       });
 
@@ -417,8 +499,8 @@ export default function InvoiceDetailPage() {
         </div>
 
         {/* Line Items Table */}
-        <div className="mb-6">
-          <table className="w-full text-left text-xs sm:text-sm">
+        <div className="mb-6 overflow-x-auto print:overflow-visible">
+          <table className="w-full text-left text-xs sm:text-sm min-w-[480px] print:min-w-0">
             <thead>
               <tr className="border-b border-[#c4cbc5] print:border-black/20 text-[#626a64]">
                 <th className="py-2 font-serif font-semibold">Description</th>

@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { useToast } from '@/hooks/useToast';
 import { Upload, Trash2 } from 'lucide-react';
 import { Select } from '@/components/ui/Select';
+import { CURRENCY_OPTIONS } from '@/lib/currency';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { businessProfileSchema, type BusinessProfileFormData } from '@/lib/validations';
@@ -235,15 +236,7 @@ export default function SettingsPage() {
               <Select
                 value={defaultCurrency || 'USD'}
                 onChange={(val) => setValue('defaultCurrency', val)}
-                options={[
-                  { value: 'USD', label: 'USD ($)' },
-                  { value: 'EUR', label: 'EUR (€)' },
-                  { value: 'GBP', label: 'GBP (£)' },
-                  { value: 'JPY', label: 'JPY (¥)' },
-                  { value: 'CAD', label: 'CAD ($)' },
-                  { value: 'AUD', label: 'AUD ($)' },
-                  { value: 'INR', label: 'INR (₹)' },
-                ]}
+                options={CURRENCY_OPTIONS}
               />
             </div>
           </div>

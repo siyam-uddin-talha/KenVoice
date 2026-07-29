@@ -128,7 +128,8 @@ export default function DashboardPage() {
         </div>
       ) : (
         <div className="bg-[#ededdf] border border-[#c4cbc5] rounded-lg shadow-none overflow-x-auto">
-          <table className="w-full text-left text-sm min-w-[650px]">
+          <table className="w-full text-left text-sm min-w-[800px] table-fixed">
+            <colgroup><col className="w-[140px]" /><col className="w-[170px]" /><col className="w-[150px]" /><col className="w-[150px]" /><col className="w-[90px]" /><col className="w-[100px]" /></colgroup>
             <thead>
               <tr className="border-b border-[#c4cbc5] bg-[#f5f4ef]/50">
                 <th className="px-4 sm:px-6 py-3.5 sm:py-4 font-serif font-semibold text-[#161917]">
