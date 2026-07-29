@@ -89,6 +89,9 @@ export const metadata: Metadata = {
     title: SITE.name,
   },
   category: "business",
+  verification: {
+    google: "googlef57f464e597e6551",
+  },
 };
 
 export default function RootLayout({
