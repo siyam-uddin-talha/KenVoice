@@ -539,8 +539,8 @@ export default function InvoiceDetailPage() {
         </div>
 
         {/* Financial Summary & Signature Section */}
-        <div className="pt-4 border-t border-[#c4cbc5] print:border-black/20 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
-          {/* Notes & Signature Block */}
+        <div className="pt-4 border-t border-[#c4cbc5] print:border-black/20 flex flex-col sm:flex-row justify-between items-start gap-6">
+          {/* Notes & Bank Details Block */}
           <div className="space-y-4 max-w-sm flex-1">
             {invoice.notes && (
               <div>
@@ -552,40 +552,9 @@ export default function InvoiceDetailPage() {
                 </p>
               </div>
             )}
-
-            {/* Signature rendering if present */}
-            {hasSignature && (
-              <div className="pt-2">
-                <h4 className="text-[10px] font-semibold text-[#626a64] uppercase tracking-wider mb-1.5">
-                  Authorized Signature
-                </h4>
-                {invoice.signatureType === "draw" || invoice.signatureType === "upload" ? (
-                  invoice.signatureImage ? (
-                    <div className="h-16 max-w-[200px] border-b border-[#161917]/40 pb-1 flex items-end">
-                      <img
-                        src={invoice.signatureImage}
-                        alt="Signature"
-                        className="max-h-full object-contain"
-                      />
-                    </div>
-                  ) : null
-                ) : invoice.signatureType === "type" && invoice.signatureText ? (
-                  <div className="border-b border-[#161917]/40 pb-1">
-                    <span className="font-serif italic text-lg text-[#161917]">
-                      {invoice.signatureText}
-                    </span>
-                  </div>
-                ) : null}
-                {invoice.signedAt && (
-                  <p className="text-[10px] text-[#626a64] mt-1 font-mono">
-                    Signed on {format(new Date(invoice.signedAt), "MMM dd, yyyy")}
-                  </p>
-                )}
-              </div>
-            )}
           </div>
 
-          {/* Calculations Totals */}
+          {/* Calculations Totals & Authorized Signature */}
           <div className="w-full sm:w-64 space-y-1.5 font-mono text-xs">
             <div className="flex justify-between text-[#626a64]">
               <span>Subtotal</span>
@@ -628,6 +597,37 @@ export default function InvoiceDetailPage() {
                 {total.toFixed(2)}
               </span>
             </div>
+
+            {/* Signature rendering below Total Due */}
+            {hasSignature && (
+              <div className="mt-[80px] pt-4 border-t border-dashed border-[#c4cbc5] print:border-black/20 flex flex-col items-end">
+                <h4 className="text-[10px] font-semibold text-[#626a64] uppercase tracking-wider mb-1.5 text-right">
+                  Authorized Signature
+                </h4>
+                {invoice.signatureType === "draw" || invoice.signatureType === "upload" ? (
+                  invoice.signatureImage ? (
+                    <div className="h-16 max-w-[200px] border-b border-[#161917]/40 pb-1 flex items-end justify-end">
+                      <img
+                        src={invoice.signatureImage}
+                        alt="Signature"
+                        className="max-h-full object-contain"
+                      />
+                    </div>
+                  ) : null
+                ) : invoice.signatureType === "type" && invoice.signatureText ? (
+                  <div className="border-b border-[#161917]/40 pb-1 text-right w-full">
+                    <span className="font-serif italic text-lg text-[#161917]">
+                      {invoice.signatureText}
+                    </span>
+                  </div>
+                ) : null}
+                {invoice.signedAt && (
+                  <p className="text-[10px] text-[#626a64] mt-1 font-mono text-right">
+                    Signed on {format(new Date(invoice.signedAt), "MMM dd, yyyy")}
+                  </p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

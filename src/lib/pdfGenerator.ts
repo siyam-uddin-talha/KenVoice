@@ -277,35 +277,6 @@ export function generateInvoicePdfBase64(
     }
   }
 
-  // Signature – left
-  if (invoice.signatureText || (invoice.signatureType && invoice.signatureType !== 'none')) {
-    notesY -= 10;
-    lines.push('BT');
-    lines.push('0.40 0.40 0.40 rg');
-    lines.push('/F1 8 Tf ' + ML + ' ' + notesY + ' Td (AUTHORIZED SIGNATURE) Tj');
-    lines.push('ET');
-    notesY -= 18;
-
-    if (invoice.signatureText) {
-      lines.push('BT');
-      lines.push('0.09 0.1 0.09 rg');
-      lines.push('/F2 13 Tf ' + ML + ' ' + notesY + ' Td (' + escapePdfText(invoice.signatureText) + ') Tj');
-      lines.push('ET');
-      notesY -= 5;
-      lines.push('0.20 0.20 0.20 RG');
-      lines.push('0.4 w');
-      lines.push(ML + ' ' + notesY + ' m 250 ' + notesY + ' l S');
-      notesY -= 14;
-    }
-
-    if (invoice.signedAt) {
-      lines.push('BT');
-      lines.push('0.40 0.40 0.40 rg');
-      lines.push('/F2 8 Tf ' + ML + ' ' + notesY + ' Td (Signed on ' + escapePdfText(formatDate(invoice.signedAt)) + ') Tj');
-      lines.push('ET');
-    }
-  }
-
   // Totals – right
   const totX = 390;
   const totValX = 490;
@@ -366,6 +337,35 @@ export function generateInvoicePdfBase64(
   lines.push('BT');
   lines.push('/F1 12 Tf ' + totValX + ' ' + totY + ' Td (' + escapePdfText(currencySymbol + total.toFixed(2)) + ') Tj');
   lines.push('ET');
+
+  // Authorized Signature – below Total Due
+  if (invoice.signatureText || (invoice.signatureType && invoice.signatureType !== 'none')) {
+    totY -= 95;
+    lines.push('BT');
+    lines.push('0.40 0.40 0.40 rg');
+    lines.push('/F1 8 Tf ' + totX + ' ' + totY + ' Td (AUTHORIZED SIGNATURE) Tj');
+    lines.push('ET');
+    totY -= 18;
+
+    if (invoice.signatureText) {
+      lines.push('BT');
+      lines.push('0.09 0.1 0.09 rg');
+      lines.push('/F2 13 Tf ' + totX + ' ' + totY + ' Td (' + escapePdfText(invoice.signatureText) + ') Tj');
+      lines.push('ET');
+      totY -= 5;
+      lines.push('0.20 0.20 0.20 RG');
+      lines.push('0.4 w');
+      lines.push(totX + ' ' + totY + ' m ' + MR + ' ' + totY + ' l S');
+      totY -= 14;
+    }
+
+    if (invoice.signedAt) {
+      lines.push('BT');
+      lines.push('0.40 0.40 0.40 rg');
+      lines.push('/F2 8 Tf ' + totX + ' ' + totY + ' Td (Signed on ' + escapePdfText(formatDate(invoice.signedAt)) + ') Tj');
+      lines.push('ET');
+    }
+  }
 
   // ── Build PDF ──
   const streamContent = lines.join('\n');
