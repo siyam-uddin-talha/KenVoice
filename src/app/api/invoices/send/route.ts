@@ -21,9 +21,11 @@ export async function POST(req: Request) {
     }
 
     const apiKey = process.env.BREVO_API_KEY;
-    const senderEmail =
-      profile?.email || process.env.SENDER_EMAIL || "noreply@sutio.com";
+    // For Brevo/transactional email providers, the sender email MUST be a domain authenticated in Brevo.
+    // If SENDER_EMAIL is set (e.g. noreply@yourdomain.com), use it as sender and set replyTo to user's profile email.
+    const senderEmail = process.env.SENDER_EMAIL || profile?.email || "noreply@sutio.com";
     const senderName = profile?.name || process.env.SENDER_NAME || "KenVoice";
+    const replyToEmail = profile?.email;
 
     const subtotal = (invoice.lineItems || []).reduce(
       (acc: number, item: any) =>
@@ -105,6 +107,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           sender: { name: senderName, email: senderEmail },
+          ...(replyToEmail ? { replyTo: { name: senderName, email: replyToEmail } } : {}),
           to: [{ email: clientEmail, name: clientName || "Client" }],
           subject: `Invoice #${invoice.id} from ${senderName}`,
           htmlContent,

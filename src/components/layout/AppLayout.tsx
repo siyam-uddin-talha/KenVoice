@@ -144,6 +144,33 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Sidebar Footer Credit */}
+        <div className="p-3 border-t border-[#c4cbc5] text-xs text-[#626a64]">
+          {!isCollapsed ? (
+            <p className="text-center truncate">
+              Built by{" "}
+              <a
+                href="https://www.sutio.co/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#2b4c33] font-semibold hover:underline"
+              >
+                sutio.co
+              </a>
+            </p>
+          ) : (
+            <a
+              href="https://www.sutio.co/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex justify-center text-[#2b4c33] font-serif font-bold text-xs hover:underline"
+              title="Built by sutio.co"
+            >
+              SUTIO
+            </a>
+          )}
+        </div>
       </aside>
 
       {/* Mobile Top Navigation Bar */}
@@ -205,7 +232,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <X className="h-5 w-5" />
               </button>
             </div>
-            <nav className="space-y-1">
+            <nav className="space-y-1 flex-1">
               {navigation.map((item) => {
                 const isActive =
                   pathname === item.href ||
@@ -227,15 +254,37 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 );
               })}
             </nav>
+            <div className="pt-4 border-t border-[#c4cbc5] text-xs text-center text-[#626a64]">
+              Built by{" "}
+              <a
+                href="https://www.sutio.co/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#2b4c33] font-semibold hover:underline"
+              >
+                sutio.co
+              </a>
+            </div>
           </div>
         </div>
       )}
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-h-[calc(100vh-4rem)] md:h-screen md:overflow-y-auto bg-[#f5f4ef] print:bg-white print:h-auto print:min-h-0 print:overflow-visible print:p-0">
-        <div className="p-4 sm:p-6 md:p-12 max-w-6xl mx-auto w-full print:p-0 print:max-w-none">
+        <div className="flex-1 p-4 sm:p-6 md:p-12 max-w-6xl mx-auto w-full print:p-0 print:max-w-none">
           {children}
         </div>
+        <footer className="py-4 text-center text-xs text-[#626a64] border-t border-[#c4cbc5]/30 print:hidden">
+          Powered by{" "}
+          <a
+            href="https://www.sutio.co/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[#2b4c33] font-semibold hover:underline"
+          >
+            sutio.co
+          </a>
+        </footer>
       </main>
     </div>
   );
